@@ -1,0 +1,40 @@
+--------------------------------------------------------------
+Oscar Martinez 	 Take-Home 2: Question 1 	 Metrics III
+--------------------------------------------------------------
+Weibull Model - The dependent variable is: days
+
+Grad:     0.6363    LogL: -2192.8495    Size:   1.000
+Grad:     0.7267    LogL: -1986.4985    Size:   1.000
+Grad:     0.8283    LogL: -1798.1316    Size:   1.000
+Grad:     0.9357    LogL: -1631.6029    Size:   1.000
+Grad:     1.0336    LogL: -1490.8103    Size:   1.000
+Grad:     1.0907    LogL: -1378.6446    Size:   1.000
+Grad:     1.0617    LogL: -1295.2310    Size:   1.000
+Grad:     0.9140    LogL: -1236.4924    Size:   1.000
+Grad:     0.6690    LogL: -1195.0893    Size:   1.000
+Grad:     0.3942    LogL: -1163.6355    Size:   1.000
+Grad:     0.1454    LogL: -1137.0129    Size:   1.000
+Grad:     0.0591    LogL: -1112.4269    Size:   1.000
+Grad:     0.2248    LogL: -1088.5531    Size:   1.000
+Grad:     0.3648    LogL: -1064.8436    Size:   1.000
+Grad:     0.4930    LogL: -1041.1644    Size:   1.000
+Grad:     0.6224    LogL: -1017.6633    Size:   1.000
+Grad:     0.7635    LogL:  -994.7860    Size:   1.000
+Grad:     0.9177    LogL:  -973.3826    Size:   1.000
+Grad:     1.0525    LogL:  -954.7238    Size:   1.000
+Grad:     1.0613    LogL:  -939.8889    Size:   1.000
+Grad:     0.8367    LogL:  -928.8476    Size:   1.000
+Grad:     0.4715    LogL:  -921.7429    Size:   1.000
+Grad:     0.1384    LogL:  -918.9711    Size:   1.000
+Grad:     0.0832    LogL:  -918.5399    Size:   1.000
+Grad:     0.0493    LogL:  -918.5114    Size:   1.000
+Grad:     0.0117    LogL:  -918.5101    Size:   1.000
+Grad:     0.0015    LogL:  -918.5100    Size:   1.000
+Grad:     0.0008    LogL:  -918.5100    Size:   1.000
+
+Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+--------------------------------------------------------------
+con         -4.60591       0.80675      -5.70920       0.00000 
+vac         -0.05647       0.17883      -0.31577       0.75241 
+lap         -0.32446       0.17236      -1.88240       0.06079 
+beta         1.06906       0.07933      13.47682       0.00000 

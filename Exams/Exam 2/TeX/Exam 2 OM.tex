@@ -1,0 +1,616 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+%\usepackage{bigfoot} % to allow verbatim in footnote
+\usepackage[numbered,framed]{matlab-prettifier}
+\usepackage[letterpaper, margin=1in]{geometry}
+%\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{fancyhdr}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{cancel}
+\usepackage{titlesec}
+\usepackage{xfrac}
+\usepackage{marginnote}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+\usepackage{filecontents}
+
+\pagestyle{fancy}
+\rhead{Oscar Martinez}
+\lhead{Metrics III} 					%Insert subject
+\chead{Takehome 2 Computer} 					%Insert Title
+
+\newtheorem{theorem}{Theorem}[section]
+
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Lagr}{\mathcal{L}}
+\newcommand{\LRA}{\Leftrightarrow}
+\newcommand{\LA}{\Leftarrow}
+\newcommand{\RA}{\Rightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\rsa}{\rightsquigarrow} 
+\newcommand\Ccancel[2][black]{\renewcommand\CancelColor{\color{#1}}\cancel{#2}}
+\newcommand{\at}{a_{t+1}}
+\newcommand{\ct}{c_{t+1}}
+\DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+\DeclareMathOperator{\Var}{\mathbb{V}}% expected value
+
+\newcommand{\triforce}{\resizebox{1em}{!}{
+		\begin{tikzpicture}
+		\fill[black] (0,0)  -- +(2,0) -- +(60:2) -- cycle;
+		\fill[white]  (60:1) -- +(1,0)  -- (1,0) -- cycle;
+		\end{tikzpicture}
+}}
+
+
+\renewcommand{\footrulewidth}{0.2pt}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesubsection}{(\alph{subsection})}
+\renewcommand{\thesubsubsection}{\roman{subsubsection}.)}
+
+\begin{filecontents*}{Q1.m}
+	% Computer Take-Home 2: Question 1 
+	% Metrics III
+	%Oscar Martinez
+	
+	%Diary
+	diary Q2_Output_Oscar_Martinez.txt
+	
+	%Introduction
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('Oscar Martinez \t Take-Home 2: Question 1 \t Metrics III\n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	%Exam 2 Question 1:
+	data='mlsUp3'; bin='sold'; dep='days'; ind='vac     lap     ';
+	theta=[-3; 0; 0; 1];
+	theta=weibull(data,dep,bin,ind,theta);
+	
+	%closing output
+	diary off
+\end{filecontents*}
+
+\begin{filecontents*}{Q2.m}
+	% Computer Take-Home 2: Question 2 
+	% Metrics III
+	%Oscar Martinez
+	
+	%Diary
+	diary Q1_Output_Oscar_Martinez.txt
+	
+	%Introduction
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('Oscar Martinez \t Take-Home 2: Question 2 \t Metrics III\n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	clear
+	clc
+	load martins;
+	% shorten length of pexpchd2;
+	pexpch2=pexpchd2;
+	save martins1;
+	clear;
+	
+	% Now identify common threshold and transform lwage
+	load martins1;
+	nemploy=(employ==0);
+	nobs=size(employ,1);
+	
+	% create vector of maximums ;
+	mins=ones(nobs,1).*max(lwage);
+	lwage2=lwage.*employ+mins.*nemploy;
+	% generate lambda;
+	lambda=min(lwage2)
+	% create transformed dependent variable as lwage2;
+	% lwage2 equals lwage minus the minimum of non-zero ;
+	% values when employ=1 and 0 otherwise;
+	lwage2=(lwage2-lambda).*employ;
+	wage2=exp(lwage2);
+	clear lambda nobs ans;
+	save martins2;
+	clear;
+	
+	%define text strings for tobit models;
+	data='martins2'; 
+	dep2='lwage2';
+	ind='edu     pexp    pexp2   pexpchd pexpch2 '; 
+	bin='employ';
+	
+	% Use HL to generate startingvalues;
+	[s1b,s2b]=tobit_hl(data,dep2,bin,ind);
+	theta=tobit2a(data,dep2,bin,ind,s2b);
+	theta(7)=exp(theta(7));
+	fprintf('Common Threshold Model (based on Transformed lwage)');
+	[theta, vc,stderr]=tobit3(data,dep2,bin,ind,theta);
+	
+	%95% Confidence Interval
+	BCo=theta(2);
+	BErr=stderr(2);
+	LBCI=BCo-1.96*BErr;   %Lower CI
+	HBCI=BCo+1.96*BErr;   %Upper CI
+	fprintf('\n');
+	fprintf('\n-----------Part A--------------- \n');
+	fprintf('---Confidence Interval---\n');
+	fprintf('(%2.4f,%2.4f)',LBCI, HBCI);
+	
+	%Part B
+	fprintf('\n');
+	fprintf('\n-----------Part B--------------- \n');
+	fprintf('---Variance-Covariance Matrix---\n');
+	vc
+	fprintf('    Alpha      Beta     Delta     Gamma     Theta     Lambda     Sigma \n');
+	
+	% get stats needed for marginal effect
+	load martins
+	lwage(lwage==0)=NaN;
+	M=[child, pexp, edu, lwage];
+	fprintf('\n---Median Values---');
+	MED=nanmedian(M);
+	MWAGE=exp(MED(1,4)); MPEXP=MED(1,2); MCHD=MED(1,1); MEDU=MED(1,3);
+	MEDout=[MED MWAGE]
+	fprintf('    child     pexp        edu     lwage     wage\n');
+	
+	
+	fprintf('\n---Marginal Effect---');
+	%Marginal Effect
+	M1=theta(3)+2*theta(4)*MPEXP+theta(5)*MCHD+2*theta(6)*MPEXP*MCHD; %Marginal Effect w/o lwage
+	MargEff=M1*MWAGE
+	
+	%Variances
+	fprintf('\n---Std Err---');
+	VB=vc(2,2); VD=vc(3,3); VG=vc(4,4); VT=vc(5,5); VL=vc(6,6); CDG=vc(3,4); CDT=vc(3,5); 
+	CDL=vc(3,6); CGT=vc(4,5); CGL=vc(4,6); CTL=vc(5,6);
+	
+	%Could've combined them all into one equation but this is easier to error
+	%correct
+	VARR1=(VD+4*VG*MPEXP^2+MCHD^2*VT+4*MPEXP^2*MCHD^2*VL);
+	VARR2=2*2*MPEXP*CDG+2*MCHD*CDT+2*2*MPEXP*MCHD*CDL;
+	VARR3=2*2*MPEXP*MCHD*CGT+2*2*MPEXP*2*MPEXP*MCHD*CGL;
+	VARR4=2*MCHD*2*MPEXP*MCHD*CTL;
+	VSUM=VARR1+VARR2+VARR3+VARR4;
+	VMARG=MWAGE^2*VSUM;
+	MargSD=sqrt(VMARG)
+	
+	%95% Confidence Interval
+	LBCI2=MargEff-1.96*MargSD;   %Lower CI
+	HBCI2=MargEff+1.96*MargSD;   %Upper CI
+	fprintf('---Confidence Interval---\n');
+	fprintf('(%2.4f,%2.4f)',LBCI2, HBCI2);
+	
+	
+	fprintf('\n');
+	fprintf('\n-----------Part C--------------- \n');
+	
+	%Backup Relevant Files
+	theta1=theta;
+	vc1=vc;
+	
+	%define text strings for tobit models;
+	data='martins2'; 
+	dep2='wage2';
+	ind='edu     pexp    pexp2   pexpchd pexpch2 '; 
+	bin='employ';
+	
+	% Use HL to generate startingvalues;
+	[s1b,s2b]=tobit_hl2(data,dep2,bin,ind);
+	theta=tobit5a(data,dep2,bin,ind,s2b);
+	theta(7)=exp(theta(7));
+	%fprintf('Common Threshold Model (based on Transformed wage)\n');
+	[theta, vc, stderr]=tobit4(data,dep2,bin,ind,theta);
+	
+	%CI
+	BCo=theta(2);
+	BErr=stderr(2);
+	LBCI=BCo-1.96*BErr;   %Lower CI
+	HBCI=BCo+1.96*BErr;   %Upper CI
+	fprintf('---Confidence Interval---\n');
+	fprintf('(%2.4f,%2.4f)',LBCI, HBCI);
+	
+	%Part D
+	fprintf('\n');
+	fprintf('\n-----------Part D--------------- \n');
+	
+	%Backup Relevant Files
+	theta2=theta;
+	vc2=vc;
+	
+	%Create Geometric scaled wages
+	load martins2;
+	gmwage=geomean(wage2)
+	gswage=(1/gmwage)*wage2;
+	lgwage=log(gswage);
+	save martins3;
+	
+	%define text strings for tobit models;
+	data='martins3'; 
+	dep2='gswage';
+	ind='edu     pexp    pexp2   pexpchd pexpch2 '; 
+	bin='employ';
+	
+	fprintf('\n ---Geometrically Scaled Wages--- \n');
+	
+	% Use HL to generate startingvalues;
+	[s1b,s2b]=tobit_hl2(data,dep2,bin,ind);
+	theta=tobitPD(data,dep2,bin,ind,s2b);
+	theta=tobitPD(data,dep2,bin,ind,theta);
+	theta=tobitPD(data,dep2,bin,ind,theta);
+	theta(7)=exp(theta(7));
+	fprintf('\n Common Threshold Model (based on Transformed swage)\n');
+	[theta, vc, stderr]=tobit4(data,dep2,bin,ind,theta);
+	
+	%define text strings for tobit models;
+	data='martins3'; 
+	dep2='lgwage';
+	ind='edu     pexp    pexp2   pexpchd pexpch2 '; 
+	bin='employ';
+	
+	fprintf('\n ----------- \n');
+	
+	fprintf('\n ---Geometrically Scaled Log-Wages--- \n');
+	
+	% Use HL to generate startingvalues;
+	[s1b,s2b]=tobit_hl2(data,dep2,bin,ind);
+	theta=tobitPD(data,dep2,bin,ind,s2b);
+	theta=tobitPD(data,dep2,bin,ind,theta);
+	theta=tobitPD(data,dep2,bin,ind,theta);
+	theta(7)=exp(theta(7));
+	fprintf('\n Common Threshold Model (based on Transformed lgwage)\n');
+	[theta, vc, stderr]=tobit4(data,dep2,bin,ind,theta);
+	
+	%closing output
+	diary off
+\end{filecontents*}
+
+\let\ph\mlplaceholder % shorter macro
+\lstMakeShortInline"
+
+\lstset{
+	style              = Matlab-editor,
+	basicstyle         = \mlttfamily,
+	escapechar         = ",
+	mlshowsectionrules = true,
+}
+
+
+\begin{document}
+	
+	%\lstlistoflistings
+	\section*{Q1}
+	\subsection*{Output:}
+	\begin{verbatim}
+		--------------------------------------------------------------
+		Oscar Martinez 	 Take-Home 2: Question 1 	 Metrics III
+		--------------------------------------------------------------
+		Weibull Model - The dependent variable is: days
+		
+		Grad:     0.6363    LogL: -2192.8495    Size:   1.000
+		Grad:     0.7267    LogL: -1986.4985    Size:   1.000
+		Grad:     0.8283    LogL: -1798.1316    Size:   1.000
+		Grad:     0.9357    LogL: -1631.6029    Size:   1.000
+		Grad:     1.0336    LogL: -1490.8103    Size:   1.000
+		Grad:     1.0907    LogL: -1378.6446    Size:   1.000
+		Grad:     1.0617    LogL: -1295.2310    Size:   1.000
+		Grad:     0.9140    LogL: -1236.4924    Size:   1.000
+		Grad:     0.6690    LogL: -1195.0893    Size:   1.000
+		Grad:     0.3942    LogL: -1163.6355    Size:   1.000
+		Grad:     0.1454    LogL: -1137.0129    Size:   1.000
+		Grad:     0.0591    LogL: -1112.4269    Size:   1.000
+		Grad:     0.2248    LogL: -1088.5531    Size:   1.000
+		Grad:     0.3648    LogL: -1064.8436    Size:   1.000
+		Grad:     0.4930    LogL: -1041.1644    Size:   1.000
+		Grad:     0.6224    LogL: -1017.6633    Size:   1.000
+		Grad:     0.7635    LogL:  -994.7860    Size:   1.000
+		Grad:     0.9177    LogL:  -973.3826    Size:   1.000
+		Grad:     1.0525    LogL:  -954.7238    Size:   1.000
+		Grad:     1.0613    LogL:  -939.8889    Size:   1.000
+		Grad:     0.8367    LogL:  -928.8476    Size:   1.000
+		Grad:     0.4715    LogL:  -921.7429    Size:   1.000
+		Grad:     0.1384    LogL:  -918.9711    Size:   1.000
+		Grad:     0.0832    LogL:  -918.5399    Size:   1.000
+		Grad:     0.0493    LogL:  -918.5114    Size:   1.000
+		Grad:     0.0117    LogL:  -918.5101    Size:   1.000
+		Grad:     0.0015    LogL:  -918.5100    Size:   1.000
+		Grad:     0.0008    LogL:  -918.5100    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		con         -4.60591       0.80675      -5.70920       0.00000 
+		vac         -0.05647       0.17883      -0.31577       0.75241 
+		lap         -0.32446       0.17236      -1.88240       0.06079 
+		beta         1.06906       0.07933      13.47682       0.00000 
+	\end{verbatim}
+		\subsection*{Code:}
+	\lstinputlisting[]{Q1.m}
+	
+	\section*{Q2}
+	\subsection*{Output:}
+	\begin{verbatim}
+		--------------------------------------------------------------
+		Oscar Martinez 	 Take-Home 2: Question 2 	 Metrics III
+		--------------------------------------------------------------
+		
+		lambda =
+		
+		3.5700
+		
+		Heckman-Lee Estimates of Tobit Model
+		The data set is: martins2
+		
+		Probit Model - The dependent variable is: employ
+		The data set is: martins2
+		
+		Grad:     0.4564    LogL: -1386.3792    Size:   1.000
+		Grad:     0.1241    LogL: -1378.6496    Size:   1.000
+		Grad:     0.0071    LogL: -1378.1894    Size:   1.000
+		Grad:     0.0015    LogL: -1378.1890    Size:   1.000
+		Grad:     0.0004    LogL: -1378.1890    Size:   1.000
+		Grad:     0.0001    LogL: -1378.1890    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -0.58845       0.17882      -3.29068       0.00101 
+		edu          0.12722       0.00981      12.97394       0.00000 
+		pexp         0.03854       0.01384       2.78353       0.00542 
+		pexp2       -0.00108       0.00027      -4.00210       0.00006 
+		pexpchd     -0.01351       0.00365      -3.69861       0.00022 
+		pexpch2      0.00031       0.00010       2.95627       0.00315 
+		
+		
+		OLS Coefficients - The dependent variable is: lwage2
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con          1.13123       0.09118      12.40620       0.00000 
+		edu          0.10306       0.00408      25.28947       0.00000 
+		pexp         0.00772       0.00749       1.03174       0.30237 
+		pexp2        0.00012       0.00016       0.73849       0.46034 
+		pexpchd      0.00424       0.00221       1.91628       0.05553 
+		pexpch2     -0.00013       0.00007      -2.01065       0.04455 
+		Ln(Sig)     -0.61670
+		LogL     -1120.13392
+		
+		
+		Heckman-Lee Coefficients - The dependent variable is: lwage2
+		Uncorrected Standard Errors
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -1.78801       0.35442      -5.04484       0.00000 
+		edu          0.25397       0.01818      13.97311       0.00000 
+		pexp         0.08243       0.01142       7.21847       0.00000 
+		pexp2       -0.00188       0.00028      -6.71127       0.00000 
+		pexpchd     -0.01550       0.00317      -4.89216       0.00000 
+		pexpch2      0.00030       0.00008       3.68844       0.00023 
+		Mills        2.65040       0.31149       8.50882       0.00000 
+		Ln(Sig)      0.67175
+		Tobit Model - The dependent variable is: lwage2
+		The data set is: martins2
+		
+		Grad:     1.4521    LogL: -3452.5899    Size:   0.500
+		Grad:     0.5195    LogL: -3425.3926    Size:   0.250
+		Grad:     0.4281    LogL: -3417.9811    Size:   0.500
+		Grad:     0.3289    LogL: -3410.6604    Size:   0.250
+		Grad:     0.2992    LogL: -3407.7637    Size:   0.250
+		Grad:     0.1011    LogL: -3405.6837    Size:   0.250
+		Grad:     0.1490    LogL: -3405.5492    Size:   0.500
+		Grad:     0.2158    LogL: -3403.6044    Size:   0.250
+		Grad:     0.1635    LogL: -3402.8549    Size:   0.250
+		Grad:     0.0792    LogL: -3402.3696    Size:   0.250
+		Grad:     0.0753    LogL: -3402.0902    Size:   0.250
+		Grad:     0.0300    LogL: -3401.9125    Size:   0.250
+		Grad:     0.0348    LogL: -3401.8469    Size:   0.500
+		Grad:     0.0551    LogL: -3401.7197    Size:   0.250
+		Grad:     0.0422    LogL: -3401.6572    Size:   0.250
+		Grad:     0.0209    LogL: -3401.6216    Size:   0.250
+		Grad:     0.0185    LogL: -3401.6008    Size:   0.250
+		Grad:     0.0075    LogL: -3401.5972    Size:   0.500
+		Grad:     0.0241    LogL: -3401.5809    Size:   0.250
+		Grad:     0.0131    LogL: -3401.5727    Size:   0.250
+		Grad:     0.0102    LogL: -3401.5684    Size:   0.250
+		Grad:     0.0049    LogL: -3401.5660    Size:   0.250
+		Grad:     0.0045    LogL: -3401.5645    Size:   0.250
+		Grad:     0.0017    LogL: -3401.5639    Size:   0.500
+		Grad:     0.0057    LogL: -3401.5629    Size:   0.250
+		Grad:     0.0030    LogL: -3401.5624    Size:   0.250
+		Grad:     0.0024    LogL: -3401.5621    Size:   0.250
+		Grad:     0.0011    LogL: -3401.5620    Size:   0.250
+		Grad:     0.0011    LogL: -3401.5619    Size:   0.500
+		Grad:     0.0018    LogL: -3401.5618    Size:   0.250
+		Grad:     0.0013    LogL: -3401.5618    Size:   0.250
+		Grad:     0.0007    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0006    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0002    LogL: -3401.5617    Size:   0.500
+		Grad:     0.0007    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0004    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0003    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0001    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0001    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0000    LogL: -3401.5617    Size:   0.500
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -0.94189       0.24209      -3.89069       0.00010 
+		edu          0.21239       0.01499      14.16795       0.00000 
+		pexp         0.07146       0.01841       3.88082       0.00011 
+		pexp2       -0.00168       0.00036      -4.65441       0.00000 
+		pexpchd     -0.01488       0.00478      -3.11657       0.00185 
+		pexpch2      0.00031       0.00013       2.28637       0.02232 
+		lnsig        0.47007       0.03788      12.40952       0.00000 
+		Sigma        1.60011 
+		Common Threshold Model (based on Transformed lwage)Tobit Model - The dependent variable is: lwage2
+		The data set is: martins2
+		
+		Grad:     0.0002    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0001    LogL: -3401.5617    Size:   0.250
+		Grad:     0.0001    LogL: -3401.5617    Size:   0.250
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -0.94185       0.24209      -3.89052       0.00010 
+		edu          0.21238       0.01499      14.16737       0.00000 
+		pexp         0.07146       0.01841       3.88073       0.00011 
+		pexp2       -0.00168       0.00036      -4.65424       0.00000 
+		pexpchd     -0.01488       0.00478      -3.11637       0.00185 
+		pexpch2      0.00031       0.00013       2.28622       0.02233 
+		Sigma        1.60006       0.06061      26.39906       0.00000 
+		
+		
+		-----------Part A--------------- 
+		---Confidence Interval---
+		(0.1830,0.2418)
+		
+		-----------Part B--------------- 
+		---Variance-Covariance Matrix---
+		
+		vc =
+		
+		0.0586   -0.0019   -0.0035    0.0001    0.0001   -0.0000   -0.0033
+		-0.0019    0.0002    0.0001   -0.0000   -0.0000    0.0000    0.0005
+		-0.0035    0.0001    0.0003   -0.0000   -0.0000    0.0000    0.0003
+		0.0001   -0.0000   -0.0000    0.0000    0.0000   -0.0000   -0.0000
+		0.0001   -0.0000   -0.0000    0.0000    0.0000   -0.0000   -0.0001
+		-0.0000    0.0000    0.0000   -0.0000   -0.0000    0.0000    0.0000
+		-0.0033    0.0005    0.0003   -0.0000   -0.0001    0.0000    0.0037
+		
+		Alpha      Beta     Delta     Gamma     Theta     Lambda     Sigma 
+		
+		---Median Values---
+		MEDout =
+		
+		2.0000   25.0000    6.0000    5.7000  298.8674
+		
+		child     pexp        edu     lwage     wage
+		
+		---Marginal Effect---
+		MargEff =
+		
+		-3.4433
+		
+		
+		---Std Err---
+		MargSD =
+		
+		1.3303
+		
+		---Confidence Interval---
+		(-6.0507,-0.8360)
+		
+		-----------Part C--------------- 
+		Tobit Model - The dependent variable is: wage2
+		The data set is: martins2
+		
+		Grad:     0.0001    LogL: -5920.1049    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con        -13.90854       1.44897      -9.59891       0.00000 
+		edu          2.00114       0.06246      32.03723       0.00000 
+		pexp         0.38796       0.10927       3.55059       0.00039 
+		pexp2       -0.00726       0.00217      -3.35333       0.00081 
+		pexpchd     -0.04597       0.03170      -1.45009       0.14717 
+		pexpch2      0.00068       0.00091       0.74116       0.45867 
+		Sigma       10.33038       0.14686      70.34180       0.00000 
+		---Confidence Interval---
+		(1.8787,2.1236)
+		
+		-----------Part D--------------- 
+		
+		gmwage =
+		
+		3.8730
+		
+		
+		---Geometrically Scaled Wages--- 
+		Iteration Limit Exceeded in PD
+		Iteration Limit Exceeded in PD
+		Iteration Limit Exceeded in PD
+		
+		Common Threshold Model (based on Transformed swage)
+		Tobit Model - The dependent variable is: gswage
+		The data set is: martins2
+		
+		Grad:     8.7110    LogL: -4927.4116    Size:   0.500
+		Grad:    11.2640    LogL: -4114.9475    Size:   1.000
+		Grad:     0.3296    LogL: -4037.0659    Size:   1.000
+		Grad:     0.6883    LogL: -4027.2845    Size:   1.000
+		Grad:     0.2088    LogL: -4025.1593    Size:   1.000
+		Grad:     0.0829    LogL: -4024.6870    Size:   1.000
+		Grad:     0.0183    LogL: -4024.5574    Size:   1.000
+		Grad:     0.0071    LogL: -4024.5110    Size:   1.000
+		Grad:     0.0043    LogL: -4024.4923    Size:   1.000
+		Grad:     0.0035    LogL: -4024.4844    Size:   1.000
+		Grad:     0.0028    LogL: -4024.4810    Size:   1.000
+		Grad:     0.0020    LogL: -4024.4796    Size:   1.000
+		Grad:     0.0013    LogL: -4024.4790    Size:   1.000
+		Grad:     0.0009    LogL: -4024.4788    Size:   1.000
+		Grad:     0.0006    LogL: -4024.4787    Size:   1.000
+		Grad:     0.0004    LogL: -4024.4786    Size:   1.000
+		Grad:     0.0002    LogL: -4024.4786    Size:   1.000
+		Grad:     0.0002    LogL: -4024.4786    Size:   1.000
+		Grad:     0.0001    LogL: -4024.4786    Size:   1.000
+		Grad:     0.0001    LogL: -4024.4786    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -3.59134       0.37410      -9.59998       0.00000 
+		edu          0.51670       0.01613      32.03960       0.00000 
+		pexp         0.10019       0.02821       3.55156       0.00039 
+		pexp2       -0.00188       0.00056      -3.35441       0.00081 
+		pexpchd     -0.01187       0.00818      -1.45046       0.14707 
+		pexpch2      0.00017       0.00024       0.74149       0.45847 
+		Sigma        2.66724       0.03791      70.34793       0.00000 
+		
+		----------- 
+		
+		---Geometrically Scaled Log-Wages--- 
+		Iteration Limit Exceeded in PD
+		Iteration Limit Exceeded in PD
+		Iteration Limit Exceeded in PD
+		
+		Common Threshold Model (based on Transformed lgwage)
+		Tobit Model - The dependent variable is: lgwage
+		The data set is: martins2
+		
+		Grad:     8.9935    LogL: -4914.8767    Size:   0.500
+		Grad:    14.4850    LogL: -4071.6009    Size:   0.500
+		Grad:     6.4257    LogL: -2518.4323    Size:   1.000
+		Grad:     0.0692    LogL: -2392.5370    Size:   1.000
+		Grad:     0.0504    LogL: -2354.7076    Size:   1.000
+		Grad:     0.0375    LogL: -2346.8652    Size:   1.000
+		Grad:     0.0491    LogL: -2344.5035    Size:   1.000
+		Grad:     0.0314    LogL: -2343.7956    Size:   1.000
+		Grad:     0.0176    LogL: -2343.6064    Size:   1.000
+		Grad:     0.0073    LogL: -2343.5607    Size:   1.000
+		Grad:     0.0056    LogL: -2343.5509    Size:   1.000
+		Grad:     0.0021    LogL: -2343.5505    Size:   1.000
+		Grad:     0.0038    LogL: -2343.5462    Size:   0.500
+		Grad:     0.0006    LogL: -2343.5460    Size:   1.000
+		Grad:     0.0012    LogL: -2343.5457    Size:   0.500
+		Grad:     0.0002    LogL: -2343.5456    Size:   1.000
+		Grad:     0.0004    LogL: -2343.5456    Size:   0.500
+		Grad:     0.0001    LogL: -2343.5456    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -0.97134       0.11959      -8.12244       0.00000 
+		edu          0.14008       0.00611      22.93052       0.00000 
+		pexp         0.03328       0.00885       3.76006       0.00017 
+		pexp2       -0.00067       0.00017      -3.82255       0.00014 
+		pexpchd     -0.00464       0.00247      -1.88020       0.06021 
+		pexpch2      0.00008       0.00007       1.12471       0.26083 
+		Sigma        0.80155       0.01984      40.39400       0.00000 
+		
+	\end{verbatim}
+	\subsection*{Code:}
+	\lstinputlisting[]{Q2.m}
+	
+		
+			
+\end{document}

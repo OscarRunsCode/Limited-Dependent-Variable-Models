@@ -1,0 +1,7 @@
+load mls.txt;
+
+t = mat2cell(mls, size(mls,1), ones(1,size(mls,2)));
+[sp age lot sqft beds gar mfi pmin paved fin vac trav days ap] = deal(t{:});
+
+HW 3:
+lsp = log(sp+(1-sold));

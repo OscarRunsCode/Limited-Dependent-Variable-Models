@@ -1,0 +1,239 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+%\usepackage{bigfoot} % to allow verbatim in footnote
+\usepackage[numbered,framed]{matlab-prettifier}
+\usepackage[letterpaper, margin=1in]{geometry}
+%\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{fancyhdr}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{cancel}
+\usepackage{titlesec}
+\usepackage{xfrac}
+\usepackage{marginnote}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+\usepackage{filecontents}
+
+\pagestyle{fancy}
+\rhead{Oscar Martinez}
+\lhead{Metrics III} 					%Insert subject
+\chead{Takehome 1} 					%Insert Title
+
+\newtheorem{theorem}{Theorem}[section]
+
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Lagr}{\mathcal{L}}
+\newcommand{\LRA}{\Leftrightarrow}
+\newcommand{\LA}{\Leftarrow}
+\newcommand{\RA}{\Rightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\rsa}{\rightsquigarrow} 
+\newcommand\Ccancel[2][black]{\renewcommand\CancelColor{\color{#1}}\cancel{#2}}
+\newcommand{\at}{a_{t+1}}
+\newcommand{\ct}{c_{t+1}}
+\DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+\DeclareMathOperator{\Var}{\mathbb{V}}% expected value
+
+\newcommand{\triforce}{\resizebox{1em}{!}{
+		\begin{tikzpicture}
+		\fill[black] (0,0)  -- +(2,0) -- +(60:2) -- cycle;
+		\fill[white]  (60:1) -- +(1,0)  -- (1,0) -- cycle;
+		\end{tikzpicture}
+}}
+
+
+\renewcommand{\footrulewidth}{0.2pt}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesubsection}{(\alph{subsection})}
+\renewcommand{\thesubsubsection}{\roman{subsubsection}.)}
+
+\begin{filecontents*}{CHW4.m}
+	%-----Starting from scratch-----
+	clc
+	clear
+	
+	%Diary
+	diary CHW4_Output_Oscar_Martinez.txt
+	
+	%Introduction
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('Oscar Martinez \t Computer Homework 4 \t Metrics III\n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('\t \t  Probit Model \n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	%Importing the data:
+	load mls.txt;
+	
+	%Creating Variables from columns of imported data
+	t = mat2cell(mls, size(mls,1), ones(1,size(mls,2)));
+	[sp age lot sqft beds gar mfi pmin paved fin vac trav days ap] = deal(t{:});
+	
+	%Removing extraneous variables
+	clear t mls;
+	
+	%saving as .mat
+	save mls.mat
+	
+	%Creating new, needed variables
+	sold=sp>0; sqft2=sqft.^2; lsp = log(sp+(1-sold));
+	
+	%Saving updated data
+	save mls2.mat
+	
+	%Clearing workspace for models
+	clear
+	
+	%Note: commented out the clc from the function
+	%-----Probit Model-----
+	%Creating needed variables:
+	data='mls2'; dep='sold'; ind='age     lot     sqft    beds    gar     mfi     pmin    paved   fin     vac     trav    ap      ';
+	beta=zeros(13,1);
+	beta=probit(data,dep,ind,beta);
+	
+	%Modifying the output for ease of viewing
+	fprintf('\n');
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('\n');
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('\t \t  Logit Model \n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	%-----Logit Model-----
+	%Resetting the beta
+	beta=zeros(13,1);
+	
+	%Running the function
+	beta=zlogit(data,dep,ind,beta);
+	
+	%Aesthetics
+	fprintf('\n');
+	fprintf('--------------------------------------------------------------\n');
+	fprintf('--------------------------------------------------------------\n');
+	
+	%closing output
+	diary off
+	
+	%-----Changes made to function files-----
+	%The changes made, other than renaming anything the prefix "prob" to "(z)log" and commenting out the clc, were:
+	% -> In zlogit_bhhh.m:
+	% Created variables mu and  sigma with values 0 and 1, respectively.
+	% Used "zlog=makedist('Logistic','mu',mu,'sigma',sigma);" to define a Logistic distribution. 
+	% Replaced "fl=normpdf(xb);" with "fl=pdf(zlog,xb);" and "fb=normcdf(xb);" with "fb=cdf(zlog,xb);".
+	% -> In zlogit_logl.m:
+	% Created variables mu and  sigma with values 0 and 1, respectively.
+	% Used "zlog=makedist('Logistic','mu',mu,'sigma',sigma);" to define a Logistic distribution. 
+	% Replaced "fb=normcdf(xb);" with "fb=cdf(zlog,xb);".
+\end{filecontents*}
+
+\let\ph\mlplaceholder % shorter macro
+\lstMakeShortInline"
+
+\lstset{
+	style              = Matlab-editor,
+	basicstyle         = \mlttfamily,
+	escapechar         = ",
+	mlshowsectionrules = true,
+}
+
+
+\begin{document}
+	
+	%\lstlistoflistings
+	
+	\section*{Computer Homework 4}
+	\subsection*{Output:}
+	\begin{verbatim}
+		--------------------------------------------------------------
+		Oscar Martinez 	 Computer Homework 4 	 Metrics III
+		--------------------------------------------------------------
+		--------------------------------------------------------------
+							Probit Model 
+		--------------------------------------------------------------
+		Probit Model - The dependent variable is: sold
+		The data set is: mls2
+		
+		Grad:     0.8745    LogL:  -186.0619    Size:   1.000
+		Grad:     0.1664    LogL:  -185.9866    Size:   1.000
+		Grad:     0.0433    LogL:  -185.9841    Size:   1.000
+		Grad:     0.0070    LogL:  -185.9839    Size:   1.000
+		Grad:     0.0021    LogL:  -185.9839    Size:   1.000
+		Grad:     0.0005    LogL:  -185.9839    Size:   1.000
+		Grad:     0.0002    LogL:  -185.9839    Size:   1.000
+		Grad:     0.0000    LogL:  -185.9839    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -0.99534       0.84505      -1.17785       0.23987 
+		age         -0.00943       0.00916      -1.02923       0.30427 
+		lot         -0.00193       0.00155      -1.24565       0.21395 
+		sqft        -0.03115       0.24047      -0.12955       0.89702 
+		beds         0.07050       0.16585       0.42507       0.67112 
+		gar          0.45793       0.18757       2.44135       0.01526 
+		mfi          0.00358       0.01557       0.22969       0.81850 
+		pmin         0.95717       0.79693       1.20108       0.23075 
+		paved        0.57700       0.28833       2.00121       0.04635 
+		fin         -0.33356       0.16818      -1.98331       0.04832 
+		vac          0.33009       0.16634       1.98447       0.04819 
+		trav        -0.00659       0.02395      -0.27527       0.78332 
+		ap           0.00112       0.00401       0.27970       0.77992 
+		
+		--------------------------------------------------------------
+		--------------------------------------------------------------
+		
+		--------------------------------------------------------------
+							Logit Model 
+		--------------------------------------------------------------
+		
+		Logit Model - The dependent variable is: sold
+		The data set is: mls2
+		
+		Grad:     1.3956    LogL:  -186.0331    Size:   1.000
+		Grad:     0.2255    LogL:  -185.9037    Size:   1.000
+		Grad:     0.0921    LogL:  -185.8931    Size:   1.000
+		Grad:     0.0100    LogL:  -185.8909    Size:   1.000
+		Grad:     0.0081    LogL:  -185.8903    Size:   1.000
+		Grad:     0.0011    LogL:  -185.8902    Size:   1.000
+		Grad:     0.0015    LogL:  -185.8901    Size:   1.000
+		Grad:     0.0004    LogL:  -185.8901    Size:   1.000
+		Grad:     0.0004    LogL:  -185.8901    Size:   1.000
+		Grad:     0.0001    LogL:  -185.8901    Size:   1.000
+		Grad:     0.0001    LogL:  -185.8901    Size:   1.000
+		
+		Regressor  Coefficient	 Std. Error 	 t-stat       Prob>|t|
+		--------------------------------------------------------------
+		Con         -1.51336       1.37973      -1.09685       0.27366 
+		age         -0.01622       0.01498      -1.08301       0.27974 
+		lot         -0.00369       0.00264      -1.39824       0.16316 
+		sqft        -0.04043       0.39108      -0.10338       0.91774 
+		beds         0.10873       0.26890       0.40435       0.68627 
+		gar          0.74951       0.30849       2.42957       0.01575 
+		mfi          0.00469       0.02532       0.18536       0.85308 
+		pmin         1.52857       1.29790       1.17772       0.23992 
+		paved        0.90703       0.47600       1.90554       0.05775 
+		fin         -0.54943       0.27430      -2.00305       0.04615 
+		vac          0.51991       0.27060       1.92132       0.05572 
+		trav        -0.01163       0.03900      -0.29818       0.76579 
+		ap           0.00187       0.00647       0.28912       0.77271 
+		
+		--------------------------------------------------------------
+		--------------------------------------------------------------
+			
+	\end{verbatim}
+	\subsection*{Code:}
+	\lstinputlisting[]{CHW4.m}
+	
+		
+			
+\end{document}

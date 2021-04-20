@@ -1,0 +1,476 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{fancyhdr}
+\usepackage{titling}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{mathtools}
+\usepackage{filecontents}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{cancel}
+\usepackage{titlesec}
+\usepackage{xfrac}
+\usepackage{marginnote}
+\usepackage{setspace}
+\doublespacing
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+\usepackage[authordate,backend=biber]{biblatex-chicago}
+
+
+\begin{filecontents*}{bibliography.bib}
+	@article{dogadopt,
+		title={Determining factors for successful adoption of dogs from an animal shelter.},
+		author={Posage, JM and Bartlett, PC and Thomas, DK},
+		journal={Journal of the American Veterinary Medical Association},
+		volume={213},
+		number={4},
+		pages={478--482},
+		year={1998}
+	}
+
+@article{guard,
+	title={The Domestication, Behaviour and Use of the Dog},
+	author={Stafford, Kevin},
+	journal={The Welfare of Dogs},
+	pages={1--29},
+	year={2006},
+	publisher={Springer}
+}
+
+	@book{adopt,
+		title={Handbook of adoption: Implications for researchers, practitioners, and families},
+		author={Baden, Amanda L and Biafora, Frank A and Camacho-Gingerich, Alina},
+		year={2007},
+		publisher={Sage}
+	}
+
+	@article{LOS,
+		title={Effects of phenotypic characteristics on the length of stay of dogs at two no kill animal shelters},
+		author={Brown, William P and Davidson, Janelle P and Zuefle, Marion E},
+		journal={Journal of Applied Animal Welfare Science},
+		volume={16},
+		number={1},
+		pages={2--18},
+		year={2013},
+		publisher={Taylor \& Francis}
+	}
+
+@article{adoptPredict,
+	title={Prediction of adoption versus euthanasia among dogs and cats in a California animal shelter},
+	author={Lepper, Merry and Kass, Philip H and Hart, Lynette A},
+	journal={Journal of Applied Animal Welfare Science},
+	volume={5},
+	number={1},
+	pages={29--42},
+	year={2002},
+	publisher={Taylor \& Francis}
+}
+	
+@article{BCM,
+	title={Binary Choice Models},
+	author={Zuehlke, Thomas},
+	journal={ECO 5427: Limited Dependent Variables},
+	year={2019},
+	publisher={Florida State University}
+}
+
+\end{filecontents*}
+\addbibresource{bibliography.bib}
+
+\pagestyle{fancy}
+\rhead{Oscar Martinez}
+\lhead{METRICS III} 					%Insert subject
+\chead{Binary Choice in Pet Adoption} 					%Insert Title
+
+\newtheorem{theorem}{Theorem}[section]
+
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Lagr}{\mathcal{L}}
+\newcommand{\LRA}{\Leftrightarrow}
+\newcommand{\LA}{\Leftarrow}
+\newcommand{\RA}{\Rightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\rsa}{\rightsquigarrow} 
+\newcommand\Ccancel[2][black]{\renewcommand\CancelColor{\color{#1}}\cancel{#2}}
+\newcommand{\at}{a_{t+1}}
+\newcommand{\ct}{c_{t+1}}
+\DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+\DeclareMathOperator{\Var}{\mathbb{V}}% expected value
+
+\newcommand{\triforce}{\resizebox{1em}{!}{
+		\begin{tikzpicture}
+		\fill[black] (0,0)  -- +(2,0) -- +(60:2) -- cycle;
+		\fill[white]  (60:1) -- +(1,0)  -- (1,0) -- cycle;
+		\end{tikzpicture}
+}}
+
+
+\renewcommand{\footrulewidth}{0.2pt}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+%\renewcommand{\thesection}{\arabic{section}.}
+%\renewcommand{\thesubsection}{(\alph{subsection})}
+%\renewcommand{\thesubsubsection}{\roman{subsubsection}.)}
+
+\title{Binary Choice in Pet Adoption}
+\author{Florida State University\\ Department of Economics \\ Oscar Martinez\thanks{oam18@my.fsu.edu}}
+
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	This paper analyzes a dataset provided by PetFinder to explore relationships between pet characteristics and adoption outcome. In this exploration, this paper employs Probit and Logit models due to the inherent binary choice nature of pet adoption. Most variables used are statistically significant at the 1\% level. Findings suggest that young, male, large pets with longer fur are more likely to be adopted. As are healthy, dewormed pets who have had more photos uploaded. 
+\end{abstract}
+
+\newpage
+		
+		
+	\section{Introduction}
+		PetFinder.my is an animal welfare program based in Malysia that aims at connecting pets available for adoption to potential adopters. This organization has been Malaysia's leading animal welfare program since 2008 and has consequently accumulated a large database detailing pet characteristics as well as adoption outcomes. A portion of this database was made publicly available in 2019 in an effort by the organization to attain insight into what the primary determinants of pet adoption might be so as to better connect pets to homes. Summary statistics of this data are provided in table \ref{table:1}.
+		
+		Due to the binary nature of adoption (a pet is adopted or it is not, but not both), the methods of binary dependent variables offer a particularly alluring appeal. Success in finding the strongest determinants of adoption may help shelters better connect pets with homes.
+		
+		\section{Data}
+		Data was provided by PetFinder.my, Malaysia's "leading animal welfare platform since 2008." The data consists of 14,993 observations, and summary statistics are available in table \ref{table:1}. Additional information regarding variables is included in the variable dictionary in table \ref{table:7}. Data was analyzed using MATLAB version R2018b. Code is available from the author. 
+		
+		\section{Model}
+		
+		\subsection{Binary Choice Model Background\footcite{BCM}}
+		A statistician or econometrician conducting a statistical analysis on adoption does not observe how close an individual was to adopting a pet. That is, the statistician does not observe that pet X meets 47\% of individual i's criteria when deciding whether or not to adopt a pet; rather the statistician only observes that the pet was not adopted. Mathematically, the dependent variable, $ Y_i $, detailing the criteria a pet satisfies is unobserved. Instead a variable, $ J_i $, expressing a pet's adoption outcome is observed. 
+		
+		This "suppression" of the dependent variable, $ Y_i $, (or observation of a limited dependent variable $ J_i $) necessitates the elucidation of the relationship between $ J_i $ and $ X_i $, where $ X_i $ are the characteristics possessed by a particular pet. Thus, Binary Choice (BC) model may be interpreted as a variation of the ordinary classical regression model where all classical linear regression model (CLRM) assumptions are satisfied except that $ Y_i $ is unobserved. That is, the ordinary regression equation, $ Y_i=\alpha_i + X_i \beta +\varepsilon_i $, becomes $ Y_i=\alpha_i + X_i \beta - \sigma \varepsilon_i $ where $ Y_i $ is unobserved. In its place, we observe a $ J_i=1 $ for $ Y_i>\lambda $. That is, we observe $ J_i $ equal to one if $ Y_i $ exceeds some threshold, $ \lambda $, and $ J_i=0 $ if $ Y_i $ does not exceed this threshold. Note that writing $ y_i=Y_i-\lambda $ expresses the model with a zero-threshold. For the rest of this paper, assume that the necessary steps have been done so that the model may be expressed as having a zero-threshold. Further, note that because $ \varepsilon_i \overset{i.i.d.}{\sim}(0,1)\RA -\sigma\varepsilon_i \overset{i.i.d.}{\sim}(0,\sigma^2) $. That is, the error structure is classical.
+		
+		Observe that:
+		\begin{align*}
+			J_{i}=1 &\Leftrightarrow Y_{i}>0 \Leftrightarrow X_{i} \beta-\sigma \epsilon_{i}>0 \Leftrightarrow \epsilon_{i}<X_{i} \beta / \sigma\\
+			\RA \Prob\left(J_{i}=1\right)&=\Prob\left(\epsilon_{i}<X_{i} \beta / \sigma\right)=F\left(X_{i} \beta / \sigma\right)\\
+			J_{i}=0 &\Leftrightarrow Y_{i} \leq 0 \Leftrightarrow X_{i} \beta-\sigma \epsilon_{i} \leq 0 \Leftrightarrow \epsilon_{i} \geq X_{i} \beta / \sigma\\
+			\RA \Prob\left(J_{i}=0\right)&=\Prob\left(\epsilon_{i} \geq X_{i} \beta / \sigma\right)=1-F\left(X_{i} \beta / \sigma\right)
+		\end{align*}
+		where $ F $ denoted the cumulative distribution function of $ \varepsilon_i $. The structure is that of a Bernoulli trial (for a random variable $ X\overset{i.i.d.}{\sim}Bernoulli(p) $, its density is given by: $ f(x)=p^x *(1-p)^{1-x} $) with observation-specific probabilities. This structure implies that the density of $ J_i $ is:
+		\begin{equation}
+			f(J_i)=F\left(X_{i} \beta / \sigma\right)^{J_{i}}\left[1-F\left(X_{i} \beta / \sigma\right)\right]^{\left(1-J_{i}\right)}
+		\end{equation}
+		Although the latent regression is a CLRM, its corresponding binary choice model is a heteroskedastic nonlinear regression model since:
+		\begin{align*}
+			J_i&=F(X_i \delta) + u_i\\
+			u_i&=\begin{cases}
+			&1-F(X_i \delta)\ w.p\ F(X_i \delta)\\
+			&-F(X_i \delta)\ w.p.\ 1-F(X_i \delta)
+			\end{cases}
+		\end{align*}
+		where "$ w.p. $" denotes "with probability" and $ \delta=\sigma^{-1}\beta $. The $ k+1 $ parameters $ (\beta, \sigma) $ are not identified, however the $ k $ standardized coefficients, $ \delta $, are. 
+		
+		\subsection{Model Used in Paper}
+		For this paper, $ J_i=1 $ if the pet was adopted and $ J_i=0 $ otherwise.
+		\begin{equation}
+			J_i=\begin{cases}
+			1& \text{if the pet was adopted} \LRA Y_i>0 \\
+			0& \text{if the pet was not adopted} \LRA Y_i \leq 0
+			\end{cases}
+		\end{equation}
+		That is, the dependent variable is adoption outcome. The explanatory variables are those given in \ref{table:1} where categorical qualitative variables where turned into binary variables. For example, the variable, $ gender $, which equals one if the pet was a male was transformed into the variable $ male $ which equaled one if that pet is male. Similarly, $ breed $ was transformed into the variable $ dog $. A more detailed description of the variables is given in table \ref{table:7}. The model used is thus:
+		\begin{align}
+			Adopt_i=&F(\delta_0 + Age_i\delta_1+     Dog_i\delta_2+     Male_i\delta_3+     XLarge_i\delta_4 \nonumber \\
+			&+Medium_i\delta_5+   Large_i\delta_6+    Short_i\delta_7+ MedFur_i\delta_8 \nonumber\\
+			&+Vacc2_i\delta_9+    Worm2_i\delta_{10}  +Ster_i\delta_{11}+     Healthy_i\delta_{12} \nonumber \\  
+			&+SInjr_i\delta_{13} +Qty_i\delta_{14}+      Fee_i\delta_{15}+      VidQ_i\delta_{16}+  PhotoQ_i\delta_{17}  ) + u_i 
+		\end{align}
+		Here, the variable $ Age $ corresponds to the pet's age, in months. $ Dog $ is a binary variable that equals one if the pet is a dog. The only other type of pet in this dataset is cat, so the corresponding coefficient, $ \delta_2 $ is the effect relative to cats. $ Male $ is a binary variable that equals one if the pet is male. Its coefficient, $ \delta_3 $ should be interpreted as being relative to females. $ XLarge,\ Medium,\ Large $ are binary variables that indicating the pet's size as being extra large, medium, or large, respectfully. their coefficients, $ \delta_4,\ \delta_5,\ \text{and } \delta_6 $ should be interpreted relative to a small pet. $ Short,\ \text{and } MedFur $ are binary variables indicating a pet's fur length. Their coefficients, $ \delta_7 \text{ and } \delta_8 $ should be interpreted relative to pets having long fur. $ Vacc2,\ Worm2,\ Ster $ are binary variables that equal one whether the pet has been vaccinated, dewormed, or sterilized (spayed or neutered), respectfully. Their coefficients should be interpreted as being relative to pets without these characteristics. $ Healthy \text{ and } SInjr $ are binary variables indicating whether a pet is healthy or has a serious injury. Their coefficients should be interpreted relative to a pet with minor injuries. $ Fee $ is a variable denoting the adoption fee paid for the pet. $ Qty,\ VidQ,\ \text{and } PhotoQ $ are variables expressing the quantity of pets represented in the pet profile, the total uploaded videos for the pet profile, and the total uploaded photos for the pet profile respectfully.These variables were chosen due to their availability and reliability as well as prior predictive power as demonstrated in the literature.\footcite{LOS,dogadopt, adoptPredict} The only variables that have not been researched, to the author's knowledge, are vaccinations, deworming, and sterilization. This is because most of the research done regarding pet adoption has been conducted in the United States, where shelters are mandated to vaccinate, deworm, and sterilize. 
+		
+		It is also necessary to highlight the variables that were not utilized and the reasons why. Neither breed nor color were utilized in this paper. While prior literature has shown success in predicting adoption outcomes using breed and color, the data set used for this paper shows questionable integrity in regards to these variables. Take for example, pet $ i=150 $ whose $ Breed1=307 $, which corresponds to "mixed breed" as its primary breed, and $ Breed2=307 $, which corresponds to mixed breed as its secondary breed. In contrast, pet $ i=171 $ has $ Breed1=292 $ and $ Breed2=252 $. There are 4,231 nonzero observations in $ Breed2 $, of these 1,510 are equal to those of $ Breed1 $, and 1,727 are $ Breed2=307 $, ie mixed breed. Consequently variables denoting breed were omitted altogether. 
+		
+		A similar problem occurs with $ Color $ variables., except there are now three colors, with none denoting dominant color. No pet has the same color through all three variables, and $ Color2 $ and $ Color3 $ have zeros for some observations. Zeros are not in the supplied color dictionary, so they could potentially be interpreted as "missing" or no other color. Given these prevalent irregularities, the variables for color and breed were not used in this analysis.
+		
+		\subsection{Methodology}
+		
+		This paper employs the use of both Probit and Logit models as the choice for the distribution, $ F(\cdot) $ of $ J_i $. The Probit model is the specification of the Binary Choice model when $ \varepsilon_i \overset{i.i.d.}{\sim}N(0,1) $. Thus, $ F(X_i\delta)=\Phi(X_i\delta) $, where $ \Phi(\cdot) $ denotes the standard normal distribution function.\footcite{BCM} Thus:
+		\begin{align}
+		\Prob\left(J_{i}=1\right)&=\Prob\left(\epsilon_{i}<X_{i} \beta / \sigma\right)=\Phi\left(X_{i} \beta / \sigma\right)\\
+		\Phi(X_i\delta)&=\int_{-\infty}^{X_i\delta} \frac{1}{ \sqrt{2\pi} } \exp\left( -\frac{1}{2} (X_i\delta)^2 \right) dX_i\delta \nonumber
+		\end{align}
+		The Logit model is the specification of the binary choice model obtained when $ \varepsilon\overset{i.i.d.}{\sim}\sec^2 $. Here, $ F(X_i\delta)=\Psi(X_i\delta) $ where $ \Psi(\cdot) $ denotes the logistic distribution function.\footcite{BCM} Thus:
+		\begin{align}
+		\Prob\left(J_{i}=1\right)&=\Prob\left(\epsilon_{i}<X_{i} \beta / \sigma\right)=\Psi\left(X_{i} \beta / \sigma\right)\\
+		\Psi(X_i\delta)&=\frac{ e^{X_i\delta} }{ 1+e^{X_i\delta} } \nonumber
+		\end{align}
+		
+		
+	\section{Results}
+		The results for the Probit model and the Probit model marginal effects can be found on table \ref{table:2} and table \ref{table:3}, respectively. The results for the Logit model and the logit model marginal effects can be found in table \ref{table:4} and table \ref{table:5}, respectively. Predictions made by these models were identical and can be found in table \ref{table:6}. Results for the Probit and Logit models was identical in terms of sign and significance, as expected. 
+		
+		All variables except for $ Dog,\ Large,\ SInjr,\ Fee,\ \text{and } VidQ $ were statistically significant at the 1\% level i.e. they were statistically significantly different than zero. $ XLarge $ ceased being statistically significant at the 1\% level (or even the 10\% level) and $ Medium $ ceased being statistically significant at the 1\% level (but was still statistically significant at the 5\% level) in the Logit marginal effects estimation. Based off these results, younger pets are more likely to be adopted, as are male, (extra) large, dewormed, or healthy pets. Additionally, these results suggest that pictures increase the probability that a pet would be adopted, whereas videos do not. 
+		
+		Surprisingly, findings suggest that vaccinations lower a pet's desirability. This could be to vaccination being correlated with other variables. A correlation matrix is provided in table \ref{table:8}. Additionally, it appears that Malaysians prefer non-sterilized pets and male pets. This finding could be due to the desire to breed pets in the future. The preference for large pets could potentially be explained by the use of dogs to guard homes.\footcite{guard} This possible explanation suffers from the lack of statistical significance of the $ Dog $ variable. 
+		
+		To test the quality of the models' fit, predicted results for pet adoption were run against actual results for pet adoption for both the Probit and Logit models. These results were identical and are given in table \ref{table:6}. The models correctly predicted 53.3729\% of the non-adopted cases (that is, of the predictions made by the models that a pet would not be adopted, the model was correct 52.3729\% of the time). The models found more success predicting when a pet would be adopted where they established a 73.0056\% accuracy rate. For comparison, non-adoptions constituted 27.9931\% of the observations in the data, and adoptions the remaining 72.0069\%. Thus, the model fairs slightly better than a fair coin in predicting non-adoptions and fairly well at predicting adoptions. 
+				
+	\section{Conclusion}
+		This paper examined determinants of pet adoption based on a dataset provided by PetFinder.my which was composed of pet characteristics and other variables surrounding the pets. The vehicles by which this examination was carried out were two binary choice models; a Probit model and a Logit model. Both featured identical results regarding sign and significance. Findings suggest that the pets which are most likely to be adopted possess the following characteristics: (extra) large, young, male, long fur, dewormed, non-sterile, non-vaccinated, and healthy. Additionally, results show that pictures increase a pet's adoption outcome, so shelters should upload more pictures of a pet if they want that pet to be adopted. 
+		
+		\subsection{Future Work}
+		The dataset included pictures of the pets, so color and breed can be checked pet-by-pet to ensure data integrity. Thus, in the future, color and breed can be included in the model so as to hopefully attain more reliable results. 
+		
+		Additionally, the dependent variable, $ Adopt_i $, was a one if the pet was adopted. Since the dataset contains data on how quickly a pet was adopted, models could be run to determine what characteristics lead to a quicker adoption. Conditional models could also be used for pets that were not immediately adopted to determine factors that could influence outcome. 
+		
+	\newpage
+		\printbibliography
+		
+	\section{Tables and Figures}
+	
+		\begin{table}[h]
+		\centering
+		\caption{Summary Statistics}
+		\begin{tabular}{lrrrrr} \hline
+			VARIABLES & N & mean & sd & min & max \\ \hline
+			age & 14,993 & 10.45 & 18.16 & 0 & 255 \\
+			breed1 & 14,993 & 265.3 & 60.06 & 0 & 307 \\
+			breed2 & 14,993 & 74.01 & 123.0 & 0 & 307 \\
+			gender & 14,993 & 1.776 & 0.682 & 1 & 3 \\
+			maturitysize & 14,993 & 1.862 & 0.548 & 1 & 4 \\
+			furlength & 14,993 & 1.467 & 0.599 & 1 & 3 \\
+			vaccinated & 14,993 & 1.731 & 0.668 & 1 & 3 \\
+			dewormed & 14,993 & 1.559 & 0.696 & 1 & 3 \\
+			sterilized & 14,993 & 1.914 & 0.566 & 1 & 3 \\
+			health & 14,993 & 1.037 & 0.200 & 1 & 3 \\
+			quantity & 14,993 & 1.576 & 1.472 & 1 & 20 \\
+			fee & 14,993 & 21.26 & 78.41 & 0 & 3,000 \\
+			videoamt & 14,993 & 0.0568 & 0.346 & 0 & 8 \\
+			photoamt & 14,993 & 3.889 & 3.488 & 0 & 30 \\
+			adoptionspeed & 14,993 & 2.516 & 1.177 & 0 & 4 \\
+			 \hline
+		\end{tabular}
+		\label{table:1}
+	\end{table}
+
+	\begin{table}[h]
+		\centering
+		\caption{Probit Model Results}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Regressor & Coefficient & Std. Error & t-stat    & Prob$ >|t| $ \\ \midrule
+			Con       & 0.96143     & 0.08485    & 11.33084  & 0.00000  \\
+			Age       & -0.00525    & 0.00066    & -7.99529  & 0.00000  \\
+			Dog       & -0.02740    & 0.02347    & -1.16734  & 0.24309  \\
+			Male      & 0.09238     & 0.02411    & 3.83118   & 0.00013  \\
+			XLarge    & 0.89022     & 0.29994    & 2.96799   & 0.00300  \\
+			Medium    & -0.11395    & 0.02781    & -4.09748  & 0.00004  \\
+			Large     & -0.05307    & 0.04617    & -1.14954  & 0.25035  \\
+			Short     & -0.52927    & 0.05587    & -9.47319  & 0.00000  \\
+			MedFur    & -0.43742    & 0.05676    & -7.70619  & 0.00000  \\
+			Vacc2     & -0.16939    & 0.03291    & -5.14679  & 0.00000  \\
+			Worm2     & 0.18278     & 0.03069    & 5.95510   & 0.00000  \\
+			Ster      & -0.45215    & 0.03073    & -14.71418 & 0.00000  \\
+			Healthy   & 0.24671     & 0.06180    & 3.99192   & 0.00007  \\
+			SInjr     & -0.13541    & 0.22980    & -0.58927  & 0.55569  \\
+			Qty       & -0.08593    & 0.00711    & -12.08680 & 0.00000  \\
+			Fee       & -0.00015    & 0.00016    & -0.97989  & 0.32716  \\
+			VidQ      & -0.02522    & 0.03161    & -0.79774  & 0.42503  \\
+			PhotoQ    & 0.05118     & 0.00336    & 15.22849  & 0.00000  \\ \bottomrule
+		\end{tabular}
+		\label{table:2}
+	\end{table}
+
+	\begin{table}[h]
+		\centering
+		\caption{Probit Marginal Effects}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Regressor & Marginal & Std. Error & t-stat    & $ Prob>|t| $ \\ \midrule
+			Con       & 0.31713  & 0.02773    & 11.43616  & 0.00000  \\
+			Age       & -0.00173 & 0.00022    & -8.00863  & 0.00000  \\
+			Dog       & -0.00904 & 0.00774    & -1.16743  & 0.24306  \\
+			Male      & 0.03047  & 0.00795    & 3.83209   & 0.00013  \\
+			XLarge    & 0.29365  & 0.09892    & 2.96862   & 0.00300  \\
+			Medium    & -0.03759 & 0.00918    & -4.09505  & 0.00004  \\
+			Large     & -0.01751 & 0.01523    & -1.14944  & 0.25039  \\
+			Short     & -0.17458 & 0.01841    & -9.48200  & 0.00000  \\
+			MedFur    & -0.14429 & 0.01871    & -7.71133  & 0.00000  \\
+			Vacc2     & -0.05588 & 0.01085    & -5.15080  & 0.00000  \\
+			Worm2     & 0.06029  & 0.01012    & 5.95966   & 0.00000  \\
+			Ster      & -0.14915 & 0.01012    & -14.73897 & 0.00000  \\
+			Healthy   & 0.08138  & 0.02039    & 3.99174   & 0.00007  \\
+			SInjr     & -0.04467 & 0.07580    & -0.58927  & 0.55569  \\
+			Qty       & -0.02834 & 0.00234    & -12.11527 & 0.00000  \\
+			Fee       & -0.00005 & 0.00005    & -0.97999  & 0.32711  \\
+			VidQ      & -0.00832 & 0.01043    & -0.79779  & 0.42500  \\
+			PhotoQ    & 0.01688  & 0.00111    & 15.27626  & 0.00000  \\ \bottomrule
+		\end{tabular}
+		\label{table:3}
+	\end{table}
+
+	\begin{table}[h]
+		\centering
+		\caption{Logit Model Results}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Regressor & Coefficient & Std. Error & t-stat    & Prob$ >|t| $ \\ \midrule
+			Con       & 1.60454     & 0.14504    & 11.06254  & 0.00000  \\
+			Age       & -0.00847    & 0.00108    & -7.85595  & 0.00000  \\
+			Dog       & -0.04554    & 0.03950    & -1.15301  & 0.24892  \\
+			Male      & 0.15464     & 0.04087    & 3.78350   & 0.00016  \\
+			XLarge    & 1.62496     & 0.63309    & 2.56672   & 0.01028  \\
+			Medium    & -0.20074    & 0.04710    & -4.26193  & 0.00002  \\
+			Large     & -0.09522    & 0.07794    & -1.22172  & 0.22183  \\
+			Short     & -0.92295    & 0.09965    & -9.26195  & 0.00000  \\
+			MedFur    & -0.76825    & 0.10114    & -7.59586  & 0.00000  \\
+			Vacc2     & -0.28622    & 0.05606    & -5.10571  & 0.00000  \\
+			Worm2     & 0.31003     & 0.05259    & 5.89548   & 0.00000  \\
+			Ster      & -0.74628    & 0.05081    & -14.68739 & 0.00000  \\
+			Healthy   & 0.41538     & 0.10157    & 4.08951   & 0.00004  \\
+			SInjr     & -0.22762    & 0.37202    & -0.61185  & 0.54065  \\
+			Qty       & -0.14403    & 0.01219    & -11.81945 & 0.00000  \\
+			Fee       & -0.00022    & 0.00026    & -0.81849  & 0.41309  \\
+			VidQ      & -0.03699    & 0.05565    & -0.66459  & 0.50632  \\
+			PhotoQ    & 0.09020     & 0.00610    & 14.77881  & 0.00000  \\ \bottomrule
+		\end{tabular}
+		\label{table:4}
+	\end{table}
+			
+
+	\begin{table}[h]
+		\centering
+		\caption{Logit Marginal Effects}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Regressor & Marginal & Std. Error & t-stat   & Prob$ >|t| $ \\ \midrule
+			Con       & 0.21888  & 0.03202    & 6.83602  & 0.00000  \\
+			Age       & -0.00120 & 0.00024    & -4.92070 & 0.00000  \\
+			Dog       & -0.00624 & 0.00884    & -0.70596 & 0.48023  \\
+			Male      & 0.02103  & 0.00911    & 2.30773  & 0.02103  \\
+			XLarge    & 0.20267  & 0.13074    & 1.55019  & 0.12112  \\
+			Medium    & -0.02594 & 0.01055    & -2.45985 & 0.01391  \\
+			Large     & -0.01208 & 0.01746    & -0.69209 & 0.48889  \\
+			Short     & -0.12049 & 0.02192    & -5.49736 & 0.00000  \\
+			MedFur    & -0.09958 & 0.02226    & -4.47430 & 0.00001  \\
+			Vacc2     & -0.03856 & 0.01247    & -3.09271 & 0.00199  \\
+			Worm2     & 0.04161  & 0.01167    & 3.56481  & 0.00037  \\
+			Ster      & -0.10294 & 0.01138    & -9.04352 & 0.00000  \\
+			Healthy   & 0.05616  & 0.02289    & 2.45385  & 0.01414  \\
+			SInjr     & -0.03083 & 0.08395    & -0.36723 & 0.71345  \\
+			Qty       & -0.01956 & 0.00280    & -6.98101 & 0.00000  \\
+			Fee       & -0.00003 & 0.00006    & -0.60372 & 0.54604  \\
+			VidQ      & -0.00574 & 0.01276    & -0.45002 & 0.65270  \\
+			PhotoQ    & 0.01165  & 0.00138    & 8.44634  & 0.00000  \\ \bottomrule
+		\end{tabular}
+		\label{table:5}
+	\end{table}
+
+		\begin{table}[h]
+		\centering
+		\caption{Model Predictions}
+		\begin{tabular}{@{}lll@{}}
+			\cmidrule{2-3}
+			& \multicolumn{1}{r}{Predicted 0}  & \multicolumn{1}{r}{Predicted 1} \\
+			\cmidrule{1-3}
+			\multicolumn{1}{l}{Actual 0 }  & \multicolumn{1}{r}{309}   & \multicolumn{1}{r}{3888}   \\
+			\multicolumn{1}{l}{Actual 1}                               & \multicolumn{1}{r}{281}         & \multicolumn{1}{r}{10515}  \\
+			\bottomrule
+			\toprule
+			& \multicolumn{1}{r}{\% Correctly Predicted}         & \multicolumn{1}{r}{\% in Data}        \\
+			\cmidrule{2-3}
+			\multicolumn{1}{l}{0:}                                     & \multicolumn{1}{r}{52.3729}      & \multicolumn{1}{r}{27.9931} \\
+			\multicolumn{1}{l}{1:}                                & \multicolumn{1}{r}{73.0056}      & \multicolumn{1}{r}{72.0069} \\ \bottomrule
+		\end{tabular}
+		\label{table:6}
+	\end{table}
+
+	\begin{table}[h]
+		\centering
+		\caption{Variable Dictionary}
+		\begin{tabular}{@{}ll@{}}
+			\toprule
+			Variable Name & Description                                                                                                                                                    \\ \midrule
+			PetID         & Unique hash ID of pet profile                                                                                                                                  \\
+			AdoptionSpeed & \begin{tabular}[c]{@{}l@{}}Categorical speed of adoption.\\   Lower is faster. 0=same day. 1=same week.  \\ 2=same month. 3=same quarter. 4=not adopted.\end{tabular} \\
+			Type          & Type of animal (1 = Dog, 2 = Cat)                                                                                                                              \\
+			Name          & Name of pet (Empty if not named)                                                                                                                               \\
+			Age           & Age of pet when listed, in months                                                                                                                              \\
+			Breed1        & \begin{tabular}[c]{@{}l@{}}Primary breed of pet (Refer to\\   BreedLabels dictionary)\end{tabular}                                                             \\
+			Breed2        & \begin{tabular}[c]{@{}l@{}}Secondary breed of pet, if pet is\\   of mixed breed (Refer to BreedLabels dictionary)\end{tabular}                                 \\
+			Gender        & \begin{tabular}[c]{@{}l@{}}Gender of pet (1 = Male, 2 =\\   Female, 3 = Mixed, if profile represents group of pets)\end{tabular}                               \\
+			Color1        & \begin{tabular}[c]{@{}l@{}}Color 1 of pet (Refer to\\   ColorLabels dictionary)\end{tabular}                                                                   \\
+			Color2        & \begin{tabular}[c]{@{}l@{}}Color 2 of pet (Refer to\\   ColorLabels dictionary)\end{tabular}                                                                   \\
+			Color3        & \begin{tabular}[c]{@{}l@{}}Color 3 of pet (Refer to\\   ColorLabels dictionary)\end{tabular}                                                                   \\
+			MaturitySize  & \begin{tabular}[c]{@{}l@{}}Size at maturity (1 = Small, 2 =Medium,\\    3 = Large, 4 = Extra Large, 0 = Not Specified)\end{tabular}                            \\
+			FurLength     & \begin{tabular}[c]{@{}l@{}}Fur length (1 = Short, 2 = Medium,\\   3 = Long, 0 = Not Specified)\end{tabular}                                                    \\
+			Vaccinated    & \begin{tabular}[c]{@{}l@{}}Pet has been vaccinated (1 = Yes,\\   2 = No, 3 = Not Sure)\end{tabular}                                                            \\
+			Dewormed      & \begin{tabular}[c]{@{}l@{}}Pet has been dewormed (1 = Yes, 2\\   = No, 3 = Not Sure)\end{tabular}                                                              \\
+			Sterilized    & \begin{tabular}[c]{@{}l@{}}Pet has been spayed / neutered (1\\   = Yes, 2 = No, 3 = Not Sure)\end{tabular}                                                     \\
+			Health        & \begin{tabular}[c]{@{}l@{}}Health Condition (1 = Healthy, 2 =\\   Minor Injury, 3 = Serious Injury, 0 = Not Specified)\end{tabular}                            \\
+			Quantity      & \begin{tabular}[c]{@{}l@{}}Number of pets represented in\\   profile\end{tabular}                                                                              \\
+			Fee           & Adoption fee (0 = Free)                                                                                                                                        \\
+			State         & \begin{tabular}[c]{@{}l@{}}State location in Malaysia (Refer\\   to StateLabels dictionary)\end{tabular}                                                       \\
+			RescuerID     & Unique hash ID of rescuer                                                                                                                                      \\
+			VideoAmt      & Total uploaded videos for this pet                                                                                                                             \\
+			PhotoAmt      & Total uploaded photos for this pet                                                                                                                             \\
+			Description   & \begin{tabular}[c]{@{}l@{}}Profile write up for this pet. The primary language \\ used is English, with some in Malay or Chinese.\end{tabular}                \\ \bottomrule
+		\end{tabular}
+	\label{table:7}
+	\end{table}
+	
+	\begin{table}[]
+		\centering
+		\caption{Correlation Matrix}
+		\begin{tabular}{@{}l|rrrrrrrrr@{}}
+			\toprule
+			& Adopt & Age & Dog & Male & XLarge & Medium & Large & Short & MedFur \\ \midrule
+			Adopt & 1.0000 & -0.1104 & -0.0423 & 0.0442 & 0.0198 & -0.0283 & -0.0039 & -0.0402 & 0.0129 \\
+			Age & -0.1104 & 1.0000 & 0.1467 & 0.0808 & 0.0528 & -0.0998 & 0.1625 & -0.1118 & 0.0383 \\
+			Dog & -0.0423 & 0.1467 & 1.0000 & 0.0007 & 0.0116 & 0.1545 & 0.0369 & -0.0141 & 0.0329 \\
+			Male & 0.0442 & 0.0808 & 0.0007 & 1.0000 & 0.0171 & -0.0230 & 0.0846 & -0.0186 & 0.0102 \\
+			XLarge & 0.0198 & 0.0528 & 0.0116 & 0.0171 & 1.0000 & -0.0696 & -0.0142 & -0.0214 & 0.0095 \\
+			Medium & -0.0283 & -0.0998 & 0.1545 & -0.0230 & -0.0696 & 1.0000 & -0.4491 & -0.0111 & 0.0577 \\
+			Large & -0.0039 & 0.1625 & 0.0369 & 0.0846 & -0.0142 & -0.4491 & 1.0000 & -0.0729 & 0.0118 \\
+			Short & -0.0402 & -0.1118 & -0.0141 & -0.0186 & -0.0214 & -0.0111 & -0.0729 & 1.0000 & -0.8903 \\
+			MedFur & 0.0129 & 0.0383 & 0.0329 & 0.0102 & 0.0095 & 0.0577 & 0.0118 & -0.8903 & 1.0000 \\
+			Vacc2 & -0.0742 & 0.2601 & 0.1927 & 0.0521 & 0.0408 & 0.0289 & 0.0848 & -0.0255 & 0.0023 \\
+			Worm2 & -0.0025 & 0.1443 & 0.0886 & 0.0583 & 0.0216 & 0.0439 & 0.0549 & 0.0068 & -0.0226 \\
+			Ster & -0.1551 & 0.3379 & 0.0527 & -0.0143 & 0.0287 & -0.0019 & 0.0715 & 0.0105 & -0.0260 \\
+			Healthy & 0.0333 & -0.1031 & -0.0053 & -0.0409 & -0.0146 & 0.0624 & -0.0326 & 0.0227 & -0.0060 \\
+			SInjr & -0.0140 & 0.0382 & 0.0071 & 0.0187 & -0.0022 & -0.0041 & 0.0108 & 0.0086 & -0.0092 \\
+			Qty & -0.0653 & -0.1131 & -0.0355 & -0.2268 & -0.0077 & -0.0088 & -0.0330 & 0.0238 & -0.0010 \\
+			Fee & -0.0004 & 0.0892 & 0.0417 & 0.0326 & 0.0227 & -0.0790 & 0.1009 & -0.0970 & -0.0002 \\
+			VidQ & 0.0190 & -0.0160 & 0.0057 & -0.0109 & 0.0005 & 0.0071 & 0.0108 & 0.0172 & -0.0170 \\
+			PhotoQ & 0.1018 & -0.0848 & -0.0497 & -0.0451 & -0.0099 & 0.0320 & -0.0088 & 0.0263 & -0.0145 \\ \midrule \midrule
+			& Vacc2 & Worm2 & Ster & Healthy & SInjr & Qty & Fee & VidQ & PhotoQ \\ \midrule
+			Adopt & -0.0742 & -0.0025 & -0.1551 & 0.0333 & -0.0140 & -0.0653 & -0.0004 & 0.0190 & 0.1018 \\
+			Age & 0.2601 & 0.1443 & 0.3379 & -0.1031 & 0.0382 & -0.1131 & 0.0892 & -0.0160 & -0.0848 \\
+			Dog & 0.1927 & 0.0886 & 0.0527 & -0.0053 & 0.0071 & -0.0355 & 0.0417 & 0.0057 & -0.0497 \\
+			Male & 0.0521 & 0.0583 & -0.0143 & -0.0409 & 0.0187 & -0.2268 & 0.0326 & -0.0109 & -0.0451 \\
+			XLarge & 0.0408 & 0.0216 & 0.0287 & -0.0146 & -0.0022 & -0.0077 & 0.0227 & 0.0005 & -0.0099 \\
+			Medium & 0.0289 & 0.0439 & -0.0019 & 0.0624 & -0.0041 & -0.0088 & -0.0790 & 0.0071 & 0.0320 \\
+			Large & 0.0848 & 0.0549 & 0.0715 & -0.0326 & 0.0108 & -0.0330 & 0.1009 & 0.0108 & -0.0088 \\
+			Short & -0.0255 & 0.0068 & 0.0105 & 0.0227 & 0.0086 & 0.0238 & -0.0970 & 0.0172 & 0.0263 \\
+			MedFur & 0.0023 & -0.0226 & -0.0260 & -0.0060 & -0.0092 & -0.0010 & -0.0002 & -0.0170 & -0.0145 \\
+			Vacc2 & 1.0000 & 0.6411 & 0.4349 & 0.0432 & -0.0154 & -0.1713 & 0.1438 & 0.0230 & 0.0163 \\
+			Worm2 & 0.6411 & 1.0000 & 0.3249 & 0.0387 & -0.0255 & -0.1914 & 0.1241 & 0.0308 & 0.0793 \\
+			Ster & 0.4349 & 0.3249 & 1.0000 & 0.0158 & -0.0105 & -0.1121 & 0.0813 & 0.0052 & 0.0162 \\
+			Healthy & 0.0432 & 0.0387 & 0.0158 & 1.0000 & -0.2528 & 0.0347 & 0.0081 & 0.0034 & 0.0267 \\
+			SInjr & -0.0154 & -0.0255 & -0.0105 & -0.2528 & 1.0000 & -0.0120 & -0.0111 & -0.0078 & 0.0015 \\
+			Qty & -0.1713 & -0.1914 & -0.1121 & 0.0347 & -0.0120 & 1.0000 & -0.0605 & 0.0083 & 0.1378 \\
+			Fee & 0.1438 & 0.1241 & 0.0813 & 0.0081 & -0.0111 & -0.0605 & 1.0000 & -0.0008 & 0.0051 \\
+			VidQ & 0.0230 & 0.0308 & 0.0052 & 0.0034 & -0.0078 & 0.0083 & -0.0008 & 1.0000 & 0.2272 \\
+			PhotoQ & 0.0163 & 0.0793 & 0.0162 & 0.0267 & 0.0015 & 0.1378 & 0.0051 & 0.2272 & 1.0000 \\ \bottomrule
+		\end{tabular} 
+		\label{table:8}
+	\end{table}
+	
+		
+	
+			
+\end{document}
